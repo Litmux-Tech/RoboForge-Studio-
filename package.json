@@ -1,0 +1,21 @@
+{
+  "name": "roboforge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "RoboForge Studio — open-source platform to design, simulate, program, flash and control robots, all in one place.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm --filter @roboforge/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r exec rm -rf dist node_modules && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

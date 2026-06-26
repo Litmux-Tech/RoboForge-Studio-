@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+*.tsbuildinfo
+
+# tooling caches
+.vite/
+.turbo/
+coverage/
+
+# env
+.env
+.env.*
+!.env.example
+
+# firmware build artifacts (PlatformIO)
+.pio/
+firmware/**/.pio/
+*.bin
+*.elf
+*.hex
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
