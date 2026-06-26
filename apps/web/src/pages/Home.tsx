@@ -67,157 +67,159 @@ export function Home() {
   const uptime = telemetry ? fmtTime(telemetry.ts) : '00:00:00';
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-hidden p-4">
-      <div className="shrink-0">
-        <h1 className="text-xl font-semibold">Welcome back, Engineer 👋</h1>
-        <p className="text-sm text-slate-400">Design, simulate, learn and control robots — all in one place.</p>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <div className="flex min-h-full flex-col gap-3 p-4">
+        <div>
+          <h1 className="text-xl font-semibold">Welcome back, Engineer 👋</h1>
+          <p className="text-sm text-slate-400">Design, simulate, learn and control robots — all in one place.</p>
+        </div>
 
-      <div className="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4">
-        <ActionCard primary icon={<Plus size={18} />} title="New Project" sub="Start a new robot project" />
-        <ActionCard icon={<FolderOpen size={18} />} title="Open Project" sub="Open existing project" />
-        <ActionCard icon={<Upload size={18} />} title="Import" sub="Import 3D model / project" />
-        <ActionCard icon={<LayoutGrid size={18} />} title="Templates" sub="Browse robot templates" />
-      </div>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <ActionCard primary icon={<Plus size={18} />} title="New Project" sub="Start a new robot project" />
+          <ActionCard icon={<FolderOpen size={18} />} title="Open Project" sub="Open existing project" />
+          <ActionCard icon={<Upload size={18} />} title="Import" sub="Import 3D model / project" />
+          <ActionCard icon={<LayoutGrid size={18} />} title="Templates" sub="Browse robot templates" />
+        </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[1fr_300px]">
-        <Card title="QUICK SIMULATION" right={<LiveBadge on={connected} />} className="flex min-h-0 flex-col">
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-[190px_1fr]">
-            <div className="flex flex-col gap-2.5 text-sm">
-              <div>
-                <div className="font-semibold">{profile.name}</div>
-                <div className="text-xs leading-snug text-slate-500">
-                  ESP32 4-wheel drive robot with obstacle avoidance
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_300px]">
+          <Card title="QUICK SIMULATION" right={<LiveBadge on={connected} />}>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-[190px_1fr]">
+              <div className="flex flex-col gap-2.5 text-sm">
+                <div>
+                  <div className="font-semibold">{profile.name}</div>
+                  <div className="text-xs leading-snug text-slate-500">
+                    ESP32 4-wheel drive robot with obstacle avoidance
+                  </div>
                 </div>
+                <Meter icon={<Battery size={13} />} label="Battery" value={`${battPct}%`} pct={battPct} color="bg-emerald-500" />
+                <Meter icon={<GaugeIcon size={13} />} label="Speed" value={`${speed.toFixed(2)} m/s`} pct={(speed / maxSpeed) * 100} color="bg-cyan-500" />
+                <Field label="Mode" value="Manual" />
+                <Field label="Connection" value={connected ? 'WiFi' : '—'} dot={connected} />
+                <button
+                  onClick={() => (connected ? nav('/control') : void connect())}
+                  className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-3 py-2 text-sm font-medium text-slate-950 shadow-lg shadow-cyan-500/20 hover:opacity-90"
+                >
+                  ▶ {connected ? 'Open Live Control' : 'Start Simulation'}
+                </button>
+                <button
+                  onClick={() => nav('/control')}
+                  className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
+                >
+                  View Dashboard
+                </button>
               </div>
-              <Meter icon={<Battery size={13} />} label="Battery" value={`${battPct}%`} pct={battPct} color="bg-emerald-500" />
-              <Meter icon={<GaugeIcon size={13} />} label="Speed" value={`${speed.toFixed(2)} m/s`} pct={(speed / maxSpeed) * 100} color="bg-cyan-500" />
-              <Field label="Mode" value="Manual" />
-              <Field label="Connection" value={connected ? 'WiFi' : '—'} dot={connected} />
-              <button
-                onClick={() => (connected ? nav('/control') : void connect())}
-                className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-3 py-2 text-sm font-medium text-slate-950 shadow-lg shadow-cyan-500/20 hover:opacity-90"
-              >
-                ▶ {connected ? 'Open Live Control' : 'Start Simulation'}
-              </button>
-              <button
-                onClick={() => nav('/control')}
-                className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
-              >
-                View Dashboard
-              </button>
-            </div>
-            <div className="relative min-h-[200px] overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-              <SimScene profile={profile} sim={sim} />
-              <div className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 rounded-lg bg-black/40 p-1 backdrop-blur">
-                {['Select', 'Move', 'Rotate', 'Zoom', 'Camera', 'Reset'].map((t, i) => (
-                  <span key={t} className={`rounded px-2 py-1 text-[10px] ${i === 1 ? 'bg-cyan-500/30 text-cyan-200' : 'text-slate-400'}`}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-              {!connected && (
-                <div className="absolute inset-0 grid place-items-center text-xs text-slate-500">
-                  Press “Start Simulation”
+              <div className="relative h-[38vh] min-h-[260px] overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+                <SimScene profile={profile} sim={sim} />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 rounded-lg bg-black/40 p-1 backdrop-blur">
+                  {['Select', 'Move', 'Rotate', 'Zoom', 'Camera', 'Reset'].map((t, i) => (
+                    <span key={t} className={`rounded px-2 py-1 text-[10px] ${i === 1 ? 'bg-cyan-500/30 text-cyan-200' : 'text-slate-400'}`}>
+                      {t}
+                    </span>
+                  ))}
                 </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
-          <Card
-            title="CONNECTION STATUS"
-            right={
-              connected ? (
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">Connected</span>
-              ) : null
-            }
-          >
-            <div className="mb-2 flex items-center gap-2">
-              <div className="grid h-10 w-14 place-items-center rounded-lg border border-slate-700 bg-slate-800 text-[10px] text-slate-400">
-                ESP32
-              </div>
-              <div>
-                <div className="text-sm font-semibold">{profile.board.toUpperCase()} DevKit</div>
-                <div className="flex items-center gap-1 text-xs text-emerald-400">
-                  <Wifi size={11} /> {connected ? 'Good Signal' : 'Offline'}
-                </div>
+                {!connected && (
+                  <div className="absolute inset-0 grid place-items-center text-xs text-slate-500">
+                    Press “Start Simulation”
+                  </div>
+                )}
               </div>
             </div>
-            <div className="space-y-1">
-              <StatRow label="Address" value={connected ? '192.168.4.1' : '—'} />
-              <StatRow label="Protocol" value={connected ? 'WiFi (Sim)' : '—'} />
-              <StatRow label="Uptime" value={uptime} />
-            </div>
-            {connected && (
-              <button
-                onClick={() => void disconnect()}
-                className="mt-2 w-full rounded-lg border border-rose-500/40 bg-rose-500/10 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20"
-              >
-                Disconnect
-              </button>
-            )}
           </Card>
 
-          <Card title="QUICK ACTIONS" className="min-h-0 flex-1">
-            <div className="grid grid-cols-3 gap-2">
-              {QUICK.map((a) => (
+          <div className="flex flex-col gap-3">
+            <Card
+              title="CONNECTION STATUS"
+              right={
+                connected ? (
+                  <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">Connected</span>
+                ) : null
+              }
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <div className="grid h-10 w-14 place-items-center rounded-lg border border-slate-700 bg-slate-800 text-[10px] text-slate-400">
+                  ESP32
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">{profile.board.toUpperCase()} DevKit</div>
+                  <div className="flex items-center gap-1 text-xs text-emerald-400">
+                    <Wifi size={11} /> {connected ? 'Good Signal' : 'Offline'}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <StatRow label="Address" value={connected ? '192.168.4.1' : '—'} />
+                <StatRow label="Protocol" value={connected ? 'WiFi (Sim)' : '—'} />
+                <StatRow label="Uptime" value={uptime} />
+              </div>
+              {connected && (
                 <button
-                  key={a.label}
-                  onClick={() => a.to && nav(a.to)}
-                  className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/40 px-1 py-2.5 text-center text-[10px] leading-tight text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800/60"
+                  onClick={() => void disconnect()}
+                  className="mt-2 w-full rounded-lg border border-rose-500/40 bg-rose-500/10 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20"
                 >
-                  <span className={`grid h-8 w-8 place-items-center rounded-lg ${a.color}`}>
-                    <a.icon size={15} />
-                  </span>
-                  {a.label}
+                  Disconnect
                 </button>
+              )}
+            </Card>
+
+            <Card title="QUICK ACTIONS">
+              <div className="grid grid-cols-3 gap-2">
+                {QUICK.map((a) => (
+                  <button
+                    key={a.label}
+                    onClick={() => a.to && nav(a.to)}
+                    className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/40 px-1 py-2.5 text-center text-[10px] leading-tight text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800/60"
+                  >
+                    <span className={`grid h-8 w-8 place-items-center rounded-lg ${a.color}`}>
+                      <a.icon size={15} />
+                    </span>
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_340px]">
+          <Card title="RECENT PROJECTS">
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+              {RECENT.map((p) => (
+                <div
+                  key={p.name}
+                  className="group cursor-pointer rounded-xl border border-slate-800 bg-slate-900/40 p-2.5 transition-colors hover:border-slate-700"
+                >
+                  <div className={`mb-2 grid h-14 place-items-center rounded-lg bg-gradient-to-br ${p.tint} to-slate-900`}>
+                    <p.icon size={22} className="text-slate-300" />
+                  </div>
+                  <div className="truncate text-sm font-medium">{p.name}</div>
+                  <div className="text-[11px] text-slate-500">{p.sub}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card title="LEARNING CENTER">
+            <div className="space-y-2.5">
+              {LESSONS.map((l) => (
+                <div key={l.title} className="flex items-center gap-2.5">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-800 text-slate-300">
+                    <l.icon size={16} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="truncate text-xs font-medium">{l.title}</div>
+                      <span className="text-[10px] text-slate-500">{l.pct}%</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500">{l.sub}</div>
+                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-800">
+                      <div className={`h-full rounded-full ${l.color}`} style={{ width: `${l.pct}%` }} />
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-slate-600" />
+                </div>
               ))}
             </div>
           </Card>
         </div>
-      </div>
-
-      <div className="grid shrink-0 grid-cols-1 gap-3 xl:grid-cols-[1fr_340px]">
-        <Card title="RECENT PROJECTS">
-          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-            {RECENT.map((p) => (
-              <div
-                key={p.name}
-                className="group cursor-pointer rounded-xl border border-slate-800 bg-slate-900/40 p-2.5 transition-colors hover:border-slate-700"
-              >
-                <div className={`mb-2 grid h-16 place-items-center rounded-lg bg-gradient-to-br ${p.tint} to-slate-900`}>
-                  <p.icon size={24} className="text-slate-300" />
-                </div>
-                <div className="truncate text-sm font-medium">{p.name}</div>
-                <div className="text-[11px] text-slate-500">{p.sub}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card title="LEARNING CENTER">
-          <div className="space-y-2.5">
-            {LESSONS.map((l) => (
-              <div key={l.title} className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-800 text-slate-300">
-                  <l.icon size={16} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="truncate text-xs font-medium">{l.title}</div>
-                    <span className="text-[10px] text-slate-500">{l.pct}%</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500">{l.sub}</div>
-                  <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-800">
-                    <div className={`h-full rounded-full ${l.color}`} style={{ width: `${l.pct}%` }} />
-                  </div>
-                </div>
-                <ChevronRight size={14} className="text-slate-600" />
-              </div>
-            ))}
-          </div>
-        </Card>
       </div>
     </div>
   );
