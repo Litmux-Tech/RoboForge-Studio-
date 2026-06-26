@@ -67,6 +67,8 @@ export interface TelemetryMsg {
   s: Record<string, TelemetryValue>;
   /** battery volts, if reported */
   batt?: number;
+  /** robot speed, m/s (signed; + is forward) */
+  spd?: number;
 }
 
 /** Log / status line from the robot. */

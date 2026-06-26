@@ -87,7 +87,7 @@ export class MockTransport extends BaseTransport {
       }
     }
 
-    this.emit('message', { t: 'tel', ts: this.uptime, s, batt: round(this.batt, 2) });
+    this.emit('message', { t: 'tel', ts: this.uptime, s, batt: round(this.batt, 2), spd: round(speed, 2) });
   }
 }
 
