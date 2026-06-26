@@ -1,6 +1,6 @@
 import { create } from 'zustand';
+import { SimTransport } from '@roboforge/sim';
 import {
-  MockTransport,
   SafetyGuard,
   createEsp32FourWheelCar,
   type ActionName,
@@ -54,7 +54,7 @@ export const useRobot = create<RobotStore>((set, get) => ({
     const { profile, transport: existing } = get();
     if (existing) await existing.disconnect();
 
-    const transport = new MockTransport(profile); // ← becomes Sim/WebSocket transport later
+    const transport = new SimTransport(profile); // ← swap for WebSocketTransport to drive a real ESP32
     transport.on('state', (connection) => set({ connection }));
     transport.on('message', (msg: RobotToApp) => {
       if (msg.t === 'manifest') {

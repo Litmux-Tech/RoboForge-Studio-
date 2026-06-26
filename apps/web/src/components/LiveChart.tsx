@@ -5,11 +5,11 @@ export interface ChartSeries {
 }
 
 /**
- * Dependency-free real-time line chart. Each series is normalised to its own
- * min/max (units differ), drawn as an overlaid sparkline. Fast enough to redraw
- * at 10 Hz; swap for uPlot later if we ever need axes/zoom.
+ * Dependency-free real-time line chart that fills its parent's height. Each
+ * series is normalised to its own min/max (units differ), drawn as an overlaid
+ * sparkline. Fast enough to redraw at 10 Hz; swap for uPlot if we ever need axes.
  */
-export function LiveChart({ series, height = 160 }: { series: ChartSeries[]; height?: number }) {
+export function LiveChart({ series }: { series: ChartSeries[] }) {
   const w = 100;
   const n = Math.max(1, ...series.map((s) => s.data.length));
 
@@ -28,8 +28,12 @@ export function LiveChart({ series, height = 160 }: { series: ChartSeries[]; hei
   };
 
   return (
-    <div>
-      <svg viewBox={`0 0 ${w} 100`} preserveAspectRatio="none" style={{ width: '100%', height }}>
+    <div className="flex h-full min-h-0 flex-col">
+      <svg
+        viewBox={`0 0 ${w} 100`}
+        preserveAspectRatio="none"
+        className="min-h-0 w-full flex-1"
+      >
         {[20, 40, 60, 80].map((y) => (
           <line key={y} x1="0" y1={y} x2={w} y2={y} stroke="#1e293b" strokeWidth="0.3" />
         ))}
@@ -45,7 +49,7 @@ export function LiveChart({ series, height = 160 }: { series: ChartSeries[]; hei
           />
         ))}
       </svg>
-      <div className="mt-2 flex flex-wrap gap-4">
+      <div className="mt-2 flex shrink-0 flex-wrap gap-x-4 gap-y-1">
         {series.map((s) => (
           <div key={s.name} className="flex items-center gap-1.5 text-xs text-slate-400">
             <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />

@@ -1,38 +1,29 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import {
-  Wifi,
-  Car,
-  Gamepad2,
-  Mic,
-  Lightbulb,
-  Volume2,
-  Ruler,
-  Power,
-  Cpu,
-  Signal,
-  ChevronDown,
-} from 'lucide-react';
+import { Lightbulb, Volume2, Ruler, Power, Boxes } from 'lucide-react';
+import { SimTransport } from '@roboforge/sim';
 import { useRobot } from '../store';
 import { Card } from '../components/Card';
 import { Gauge } from '../components/Gauge';
 import { Joystick } from '../components/Joystick';
 import { LiveChart } from '../components/LiveChart';
 import { SensorReadings } from '../components/SensorReadings';
+import { SimScene } from '../sim/SimScene';
 
 export function Dashboard() {
-  const { profile, connection, manifest, telemetry, history, connect, disconnect, drive, estop, action } =
+  const { profile, connection, manifest, telemetry, history, transport, drive, estop, action } =
     useRobot();
   const connected = connection === 'connected';
+  const sim = transport instanceof SimTransport ? transport : null;
   const [headlight, setHeadlight] = useState(false);
-  const [mode, setMode] = useState('manual');
 
   const maxSpeed = profile.drive.maxSpeed ?? 1.5;
   const speed = Math.abs(telemetry?.spd ?? 0);
   const battV = telemetry?.batt ?? 0;
-  const battPct = Math.round(clamp01((battV - 6.0) / (8.4 - 6.0)) * 100);
+  const battPct = Math.round(clamp01((battV - 6) / (8.4 - 6)) * 100);
   const distRaw = telemetry?.s['dist_front'];
   const dist = typeof distRaw === 'number' ? distRaw : null;
+  const uptime = telemetry ? fmtTime(telemetry.ts) : '00:00';
 
   const series = [
     { name: 'Speed (m/s)', color: '#22d3ee', data: history.map((h) => h.spd) },
@@ -40,176 +31,102 @@ export function Dashboard() {
     { name: 'Distance (cm)', color: '#a78bfa', data: history.map((h) => h.dist) },
   ];
 
-  const toggleHeadlight = () => {
+  const toggleLight = () => {
     const next = !headlight;
     setHeadlight(next);
     action(next ? 'light_on' : 'light_off');
   };
 
   return (
-    <div className="space-y-5 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Welcome back, Engineer 👋</h1>
-          <p className="text-sm text-slate-400">Design, simulate, and control robots — all in one place.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-              connected ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-700/40 text-slate-300'
-            }`}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-            {connection}
-          </span>
-          {connected ? (
-            <button
-              onClick={() => void disconnect()}
-              className="rounded-lg bg-rose-500/90 px-4 py-2 text-sm font-medium hover:bg-rose-500"
-            >
-              Disconnect
-            </button>
-          ) : (
-            <button
-              onClick={() => void connect()}
-              className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 hover:opacity-90"
-            >
-              Connect
-            </button>
+    <div className="grid h-full grid-cols-1 gap-3 overflow-hidden p-3 lg:grid-cols-[1fr_340px]">
+      {/* LEFT — 3D hero + control bar */}
+      <div className="flex min-h-0 flex-col gap-3">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+          <SimScene profile={profile} sim={sim} />
+
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
+            <span className="flex items-center gap-1.5 rounded-md bg-black/40 px-2 py-1 text-xs backdrop-blur">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${connected ? 'animate-pulse bg-emerald-400' : 'bg-slate-500'}`}
+              />
+              {connected ? 'LIVE' : 'OFFLINE'}
+            </span>
+            {dist != null && (
+              <span
+                className={`rounded-md px-2 py-1 text-xs backdrop-blur ${
+                  dist < 25 ? 'bg-rose-500/30 text-rose-200' : 'bg-black/40 text-cyan-300'
+                }`}
+              >
+                ◢ {dist.toFixed(0)} cm
+              </span>
+            )}
+          </div>
+
+          {!connected && (
+            <div className="absolute inset-0 grid place-items-center bg-slate-950/40 backdrop-blur-[2px]">
+              <div className="text-center text-sm text-slate-400">
+                <Boxes size={36} className="mx-auto mb-2 opacity-50" />
+                Press <span className="font-medium text-cyan-300">Connect</span> (top right) to start
+                the simulation
+              </div>
+            </div>
           )}
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-3">
+          <Joystick onChange={drive} disabled={!connected} size={130} />
+          <div className="flex gap-3">
+            <Gauge value={speed} max={maxSpeed} label="Speed" unit="m/s" size={92} />
+            <Gauge value={battPct} max={100} label="Battery" unit={`${battV.toFixed(1)} V`} color="#34d399" size={92} />
+          </div>
+          <div className="ml-auto grid grid-cols-2 gap-2">
+            <ActionBtn label="Light" active={headlight} disabled={!connected} onClick={toggleLight}>
+              <Lightbulb size={16} />
+            </ActionBtn>
+            <ActionBtn label="Horn" disabled={!connected} onClick={() => action('horn')}>
+              <Volume2 size={16} />
+            </ActionBtn>
+            <ActionBtn label="Measure" disabled={!connected} onClick={() => action('measure')}>
+              <Ruler size={16} />
+            </ActionBtn>
+            <ActionBtn label="E-Stop" danger disabled={!connected} onClick={() => estop()}>
+              <Power size={16} />
+            </ActionBtn>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <div className="flex items-center gap-3">
-            <IconBadge color="cyan">
-              <Wifi size={18} />
-            </IconBadge>
-            <div className="min-w-0">
-              <div className="text-xs text-slate-400">Connection</div>
-              <div className="truncate text-sm font-semibold">
-                {connected ? 'WiFi · 192.168.4.1' : 'Not connected'}
-              </div>
-            </div>
+      {/* RIGHT — status + sensors + telemetry */}
+      <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
+        <Card title="Connection Status">
+          <div className="space-y-1.5">
+            <Row label="Board" value={manifest?.board ?? profile.board} />
+            <Row label="Address" value={connected ? '192.168.4.1' : '—'} />
+            <Row label="Protocol" value={connected ? 'Sim · kinematic' : '—'} />
+            <Row label="Firmware" value={manifest?.fw ?? '—'} />
+            <Row label="Uptime" value={uptime} />
           </div>
         </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <IconBadge color="blue">
-              <Car size={18} />
-            </IconBadge>
-            <div className="min-w-0">
-              <div className="text-xs text-slate-400">Car Type</div>
-              <div className="truncate text-sm font-semibold">{profile.name}</div>
-              <div className="text-xs text-slate-500">{labelDrive(profile.drive.kind)}</div>
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <IconBadge color="violet">
-              <Gamepad2 size={18} />
-            </IconBadge>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs text-slate-400">Command Mode</div>
-              <div className="relative">
-                <select
-                  value={mode}
-                  onChange={(e) => setMode(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-sm font-semibold focus:outline-none"
-                >
-                  <option value="manual">Manual Control</option>
-                  <option value="voice" disabled>
-                    Voice (soon)
-                  </option>
-                  <option value="auto" disabled>
-                    Autonomous (soon)
-                  </option>
-                </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-0 top-1 text-slate-500" />
-              </div>
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-3">
-            <IconBadge color="fuchsia">
-              <Mic size={18} />
-            </IconBadge>
-            <div className="min-w-0">
-              <div className="text-xs text-slate-400">Voice Assistant</div>
-              <div className="text-sm font-semibold text-slate-500">Coming soon</div>
-            </div>
-          </div>
-        </Card>
-      </div>
 
-      <Card
-        title="Live Control"
-        subtitle="Mock car · hold the joystick to drive"
-        right={
-          <span className="flex items-center gap-1.5 text-xs text-emerald-400">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> LIVE
-          </span>
-        }
-      >
-        <div className="grid gap-6 lg:grid-cols-[auto_1fr_auto] lg:items-center">
-          <div className="flex justify-center gap-4">
-            <Gauge value={speed} max={maxSpeed} label="Speed" unit="m/s" color="#22d3ee" />
-            <Gauge value={battPct} max={100} label="Battery" unit={`${battV.toFixed(1)} V`} color="#34d399" />
-          </div>
-          <div className="grid min-h-[180px] place-items-center rounded-xl border border-dashed border-slate-700 bg-slate-950/40 text-center">
-            <div className="text-sm text-slate-500">
-              <Car size={40} className="mx-auto mb-2 opacity-40" />
-              3D car view — next milestone
-              {dist != null && (
-                <div className="mt-1 text-xs text-cyan-400">obstacle ahead: {dist.toFixed(0)} cm</div>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col items-center gap-4">
-            <Joystick onChange={drive} disabled={!connected} size={180} />
-            <div className="grid grid-cols-4 gap-2">
-              <ActionBtn label="Light" active={headlight} disabled={!connected} onClick={toggleHeadlight}>
-                <Lightbulb size={16} />
-              </ActionBtn>
-              <ActionBtn label="Horn" disabled={!connected} onClick={() => action('horn')}>
-                <Volume2 size={16} />
-              </ActionBtn>
-              <ActionBtn label="Measure" disabled={!connected} onClick={() => action('measure')}>
-                <Ruler size={16} />
-              </ActionBtn>
-              <ActionBtn label="E-Stop" danger disabled={!connected} onClick={() => estop()}>
-                <Power size={16} />
-              </ActionBtn>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card title="Telemetry (Live)" className="lg:col-span-2">
-          {history.length > 1 ? (
-            <LiveChart series={series} />
-          ) : (
-            <Empty label="Connect to stream telemetry" />
-          )}
-        </Card>
         <Card title="Sensor Readings">
-          {connected ? <SensorReadings profile={profile} telemetry={telemetry} /> : <Empty label="—" />}
+          {connected ? (
+            <SensorReadings profile={profile} telemetry={telemetry} />
+          ) : (
+            <div className="py-3 text-sm text-slate-600">—</div>
+          )}
         </Card>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <SysInfo icon={<Cpu size={16} />} label="MCU" value={manifest?.board ?? profile.board} />
-        <SysInfo icon={<Power size={16} />} label="Firmware" value={manifest?.fw ?? '—'} />
-        <SysInfo icon={<Signal size={16} />} label="Drive" value={manifest?.drive ?? profile.drive.kind} />
-        <SysInfo
-          icon={<Wifi size={16} />}
-          label="Transports"
-          value={(manifest?.transports ?? profile.transports).join(', ')}
-        />
+        <Card title="Telemetry (Live)" className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1">
+            {history.length > 1 ? (
+              <LiveChart series={series} />
+            ) : (
+              <div className="grid h-full place-items-center text-sm text-slate-600">
+                Connect to stream telemetry
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );
@@ -218,18 +135,19 @@ export function Dashboard() {
 function clamp01(v: number) {
   return Math.max(0, Math.min(1, v));
 }
-function labelDrive(k: string) {
-  return k === 'diff4wd' ? '4 Wheel Drive' : k === 'diff2wd' ? '2 Wheel Drive' : k;
+function fmtTime(ms: number) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  return `${String(m).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function IconBadge({ children, color }: { children: ReactNode; color: 'cyan' | 'blue' | 'violet' | 'fuchsia' }) {
-  const map = {
-    cyan: 'bg-cyan-500/15 text-cyan-300',
-    blue: 'bg-blue-500/15 text-blue-300',
-    violet: 'bg-violet-500/15 text-violet-300',
-    fuchsia: 'bg-fuchsia-500/15 text-fuchsia-300',
-  };
-  return <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${map[color]}`}>{children}</div>;
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-slate-400">{label}</span>
+      <span className="font-medium tabular-nums text-slate-100">{value}</span>
+    </div>
+  );
 }
 
 function ActionBtn({
@@ -251,7 +169,7 @@ function ActionBtn({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2 text-[10px] transition-colors disabled:opacity-40 ${
+      className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-2 text-[10px] transition-colors disabled:opacity-40 ${
         danger
           ? 'border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
           : active
@@ -263,20 +181,4 @@ function ActionBtn({
       {label}
     </button>
   );
-}
-
-function SysInfo({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-1 truncate text-sm font-semibold">{value}</div>
-    </div>
-  );
-}
-
-function Empty({ label }: { label: string }) {
-  return <div className="grid h-24 place-items-center text-sm text-slate-600">{label}</div>;
 }

@@ -14,8 +14,9 @@ links. The control UI, dashboards, and behaviors only ever send/receive
 `ProtocolMsg`; they never know which transport is underneath:
 
 - `MockTransport` — a fake car (zero hardware)
-- `SimTransport` — applies `drv` to a Rapier rigid body, derives telemetry from
-  virtual sensors (ray-cast ultrasonic, IMU from body orientation)
+- `SimTransport` — applies `drv` to a physics body (a simple kinematic model in
+  V1; Rapier later), derives telemetry from virtual sensors (forward raycast
+  ultrasonic, IMU from body orientation)
 - `WebSocketTransport` / `BleTransport` — a real ESP32
 
 Switching from sim to real is **one line** (which `Transport` the store
