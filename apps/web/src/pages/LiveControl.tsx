@@ -10,7 +10,7 @@ import { LiveChart } from '../components/LiveChart';
 import { SensorReadings } from '../components/SensorReadings';
 import { SimScene } from '../sim/SimScene';
 
-export function Dashboard() {
+export function LiveControl() {
   const { profile, connection, manifest, telemetry, history, transport, drive, estop, action } =
     useRobot();
   const connected = connection === 'connected';
@@ -39,16 +39,12 @@ export function Dashboard() {
 
   return (
     <div className="grid h-full grid-cols-1 gap-3 overflow-hidden p-3 lg:grid-cols-[1fr_340px]">
-      {/* LEFT — 3D hero + control bar */}
       <div className="flex min-h-0 flex-col gap-3">
         <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
           <SimScene profile={profile} sim={sim} />
-
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
             <span className="flex items-center gap-1.5 rounded-md bg-black/40 px-2 py-1 text-xs backdrop-blur">
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${connected ? 'animate-pulse bg-emerald-400' : 'bg-slate-500'}`}
-              />
+              <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'animate-pulse bg-emerald-400' : 'bg-slate-500'}`} />
               {connected ? 'LIVE' : 'OFFLINE'}
             </span>
             {dist != null && (
@@ -61,13 +57,11 @@ export function Dashboard() {
               </span>
             )}
           </div>
-
           {!connected && (
             <div className="absolute inset-0 grid place-items-center bg-slate-950/40 backdrop-blur-[2px]">
               <div className="text-center text-sm text-slate-400">
                 <Boxes size={36} className="mx-auto mb-2 opacity-50" />
-                Press <span className="font-medium text-cyan-300">Connect</span> (top right) to start
-                the simulation
+                Press <span className="font-medium text-cyan-300">Connect</span> (top right) to start the simulation
               </div>
             </div>
           )}
@@ -96,7 +90,6 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* RIGHT — status + sensors + telemetry */}
       <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
         <Card title="Connection Status">
           <div className="space-y-1.5">

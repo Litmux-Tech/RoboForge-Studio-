@@ -35,12 +35,12 @@ export class SimTransport extends BaseTransport {
   /** Latest forward ultrasonic distance, metres — the renderer draws the beam from this. */
   frontDistanceM = 4;
   /** Arena half-size, metres (walls act as ultrasonic targets too). */
-  readonly arena = 2.5;
+  readonly arena = 1.6;
   readonly obstacles: Obstacle[] = [
-    { x: 1.0, z: 0.8, r: 0.18 },
-    { x: -1.2, z: 0.5, r: 0.18 },
-    { x: 0.3, z: -1.4, r: 0.18 },
-    { x: -0.7, z: -0.9, r: 0.18 },
+    { x: 0.75, z: 0.65, r: 0.16 },
+    { x: -0.85, z: 0.45, r: 0.16 },
+    { x: 0.2, z: -0.95, r: 0.16 },
+    { x: -0.55, z: -0.8, r: 0.16 },
   ];
 
   private thr = 0;

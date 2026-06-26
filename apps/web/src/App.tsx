@@ -2,7 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import { Sidebar } from './shell/Sidebar';
 import { TopBar } from './shell/TopBar';
 import { StatusBar } from './shell/StatusBar';
-import { Dashboard } from './pages/Dashboard';
+import { Home } from './pages/Home';
+import { LiveControl } from './pages/LiveControl';
 import { Placeholder } from './pages/Placeholder';
 
 export default function App() {
@@ -13,8 +14,8 @@ export default function App() {
         <TopBar />
         <main className="min-h-0 flex-1 overflow-hidden">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/control" element={<Placeholder title="Control" note="Full-screen driving view — gamepad, keyboard, voice." />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/control" element={<LiveControl />} />
             <Route path="/telemetry" element={<Placeholder title="Telemetry" note="Multi-series charts, logging, export." />} />
             <Route path="/sensors" element={<Placeholder title="Sensors" note="Add and configure sensors with per-sensor wizards." />} />
             <Route path="/configuration" element={<Placeholder title="Configuration" note="Board, pins, drive geometry, transports." />} />
