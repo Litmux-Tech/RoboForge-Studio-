@@ -23,5 +23,7 @@ server on `:81` at `192.168.4.1`.
 
 ## Status
 
-Skeleton — transport/protocol/deadman/telemetry loop are wired; motor and sensor
-drivers are stubbed (`TODO` markers in `src/main.cpp`).
+Drivers implemented (`roverlib-0.2.0`): L298N motor control via LEDC PWM
+(differential drive), HC-SR04 ultrasonic, MPU6050 yaw (raw I2C gyro integration),
+and an on-device deadman. Pins are hardcoded to the 4WD profile for now (codegen
+will emit `config.h` later). Untested on physical hardware — flash and try.
