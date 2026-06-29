@@ -24,8 +24,19 @@ export function Flash() {
   const connect = async () => {
     try {
       setBusy(true);
-      // Web Serial typings vary by browser; access via any to stay portable.
-      const port = await (navigator as unknown as { serial: { requestPort(): Promise<unknown> } }).serial.requestPort();
+      // Web Serial typings vary by browser; access via a narrow shape to stay portable.
+      const serial = (navigator as unknown as {
+        serial: { requestPort(opts?: { filters?: { usbVendorId: number }[] }): Promise<unknown> };
+      }).serial;
+      // Narrow the native picker to common ESP32 USB-UART bridges so the right port stands out.
+      const port = await serial.requestPort({
+        filters: [
+          { usbVendorId: 0x10c4 }, // Silicon Labs CP210x
+          { usbVendorId: 0x1a86 }, // WCH CH34x
+          { usbVendorId: 0x0403 }, // FTDI
+          { usbVendorId: 0x303a }, // Espressif native USB
+        ],
+      });
       const transport = new Transport(port as never, true);
       transportRef.current = transport;
       const loader = new ESPLoader({ transport, baudrate: 115200, terminal });
@@ -34,7 +45,12 @@ export function Flash() {
       setChip(typeof c === 'string' ? c : 'ESP device');
       append(`Connected · ${c}`);
     } catch (e) {
-      append(`Error: ${errMsg(e)}`);
+      const m = errMsg(e);
+      if (/No port selected/i.test(m) || (e instanceof DOMException && e.name === 'NotFoundError')) {
+        append('Port selection cancelled.');
+      } else {
+        append(`Error: ${m}`);
+      }
     } finally {
       setBusy(false);
     }
@@ -131,6 +147,13 @@ export function Flash() {
                   </button>
                 )}
               </div>
+              {!chip && (
+                <p className="mt-3 border-t border-slate-800 pt-3 text-[11px] leading-relaxed text-slate-500">
+                  Click <span className="text-slate-300">Connect Device</span>, then pick your board's USB-UART port
+                  (<span className="text-slate-300">CP2102</span>, CH340 or FTDI) in the browser's prompt. If it won't
+                  sync, hold the board's <span className="text-slate-300">BOOT</span> button while connecting.
+                </p>
+              )}
             </Card>
 
             <Card title="FIRMWARE">
