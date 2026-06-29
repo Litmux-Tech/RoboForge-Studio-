@@ -22,6 +22,18 @@ export function Flash() {
   };
 
   const connect = async () => {
+    // Release any prior session first, so the serial port isn't left open.
+    if (transportRef.current) {
+      try {
+        await transportRef.current.disconnect();
+      } catch {
+        /* ignore */
+      }
+      transportRef.current = null;
+      loaderRef.current = null;
+    }
+
+    let transport: Transport | null = null;
     try {
       setBusy(true);
       // Web Serial typings vary by browser; access via a narrow shape to stay portable.
@@ -37,17 +49,29 @@ export function Flash() {
           { usbVendorId: 0x303a }, // Espressif native USB
         ],
       });
-      const transport = new Transport(port as never, true);
-      transportRef.current = transport;
+      transport = new Transport(port as never, true);
       const loader = new ESPLoader({ transport, baudrate: 115200, terminal });
-      loaderRef.current = loader;
       const c = await loader.main();
+      transportRef.current = transport;
+      loaderRef.current = loader;
       setChip(typeof c === 'string' ? c : 'ESP device');
       append(`Connected · ${c}`);
     } catch (e) {
+      // Always release the port we just opened, or the next attempt sees "already open".
+      if (transport) {
+        try {
+          await transport.disconnect();
+        } catch {
+          /* ignore */
+        }
+      }
+      transportRef.current = null;
+      loaderRef.current = null;
       const m = errMsg(e);
       if (/No port selected/i.test(m) || (e instanceof DOMException && e.name === 'NotFoundError')) {
         append('Port selection cancelled.');
+      } else if (/already open/i.test(m)) {
+        append('Port already open — close other serial monitors (PlatformIO/Arduino) or unplug & replug the board, then retry.');
       } else {
         append(`Error: ${m}`);
       }
