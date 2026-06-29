@@ -8,6 +8,7 @@ import {
   TerminalSquare,
   Settings,
   Usb,
+  Workflow,
   Cpu,
   Battery,
 } from 'lucide-react';
@@ -19,6 +20,7 @@ const NAV = [
   { to: '/telemetry', label: 'Telemetry', icon: Activity },
   { to: '/sensors', label: 'Sensors', icon: Radar },
   { to: '/configuration', label: 'Configuration', icon: SlidersHorizontal },
+  { to: '/circuit', label: 'Circuit', icon: Workflow },
   { to: '/flash', label: 'Flash', icon: Usb },
   { to: '/terminal', label: 'Terminal', icon: TerminalSquare },
   { to: '/settings', label: 'Settings', icon: Settings },

@@ -12,8 +12,9 @@ import { Configuration } from './pages/Configuration';
 import { Settings } from './pages/Settings';
 import { Placeholder } from './pages/Placeholder';
 
-// esptool-js is heavy — keep it out of the main bundle.
+// esptool-js and React Flow are heavy — keep them out of the main bundle.
 const Flash = lazy(() => import('./pages/Flash').then((m) => ({ default: m.Flash })));
+const CircuitBuilder = lazy(() => import('./pages/CircuitBuilder').then((m) => ({ default: m.CircuitBuilder })));
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/control" element={<LiveControl />} />
               <Route path="/telemetry" element={<Telemetry />} />
               <Route path="/sensors" element={<Sensors />} />
+              <Route path="/circuit" element={<CircuitBuilder />} />
               <Route path="/flash" element={<Flash />} />
               <Route path="/terminal" element={<Terminal />} />
               <Route path="/configuration" element={<Configuration />} />
