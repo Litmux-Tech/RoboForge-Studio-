@@ -4,6 +4,7 @@ import {
   Background,
   Controls,
   MiniMap,
+  Panel,
   Handle,
   Position,
   ConnectionMode,
@@ -18,6 +19,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Cpu, Cog, Radar, BatteryFull, CircuitBoard, AlertTriangle, CheckCircle2, Lightbulb } from 'lucide-react';
+import type { TelemetryMsg } from '@roboforge/core';
 import { useRobot } from '../store';
 
 type PinType = 'power' | 'gnd' | 'gpio' | 'signal' | 'analog' | 'i2c' | 'motor';
@@ -145,10 +147,39 @@ interface NData {
   [k: string]: unknown;
 }
 
+function liveValue(specKey: string, tel: TelemetryMsg | null): string | null {
+  if (!tel) return null;
+  if (specKey === 'hcsr04') {
+    const v = tel.s['dist_front'];
+    return typeof v === 'number' ? `${v.toFixed(0)} cm` : null;
+  }
+  if (specKey === 'mpu6050') {
+    const v = tel.s['imu'];
+    return v && typeof v === 'object' ? `${(((v.yaw ?? 0) * 180) / Math.PI).toFixed(0)}°` : null;
+  }
+  if (specKey === 'battery') {
+    return tel.batt != null ? `${tel.batt.toFixed(2)} V` : null;
+  }
+  return null;
+}
+
+function withLive(e: Edge, connected: boolean, moving: boolean): Edge {
+  const sig = (e.data as { sig?: PinType } | undefined)?.sig;
+  let animated = false;
+  if (connected) {
+    if (sig === 'power' || sig === 'gnd' || sig === 'i2c') animated = true;
+    else if (sig === 'motor' || sig === 'signal') animated = moving;
+  }
+  return !!e.animated === animated ? e : { ...e, animated };
+}
+
 function ComponentNode({ data }: NodeProps) {
   const d = data as unknown as NData;
   const spec = SPECS[d.specKey];
+  const connection = useRobot((s) => s.connection);
+  const telemetry = useRobot((s) => s.telemetry);
   if (!spec) return null;
+  const live = connection === 'connected' ? liveValue(d.specKey, telemetry) : null;
   const left = spec.pins.filter((p) => p.side === 'l');
   const right = spec.pins.filter((p) => p.side === 'r');
   const rows = Math.max(left.length, right.length);
@@ -159,8 +190,9 @@ function ComponentNode({ data }: NodeProps) {
       className="relative rounded-md border-2 text-white shadow-xl"
       style={{ width: spec.width, height, background: spec.board, borderColor: spec.accent }}
     >
-      <div className="truncate px-2 py-1 text-[11px] font-semibold" style={{ borderBottom: `1px solid ${spec.accent}44` }}>
-        {d.label}
+      <div className="flex items-center justify-between gap-1 px-2 py-1 text-[11px] font-semibold" style={{ borderBottom: `1px solid ${spec.accent}44` }}>
+        <span className="truncate">{d.label}</span>
+        {live && <span className="shrink-0 rounded bg-black/40 px-1 text-[9px] font-normal text-emerald-300">{live}</span>}
       </div>
       <div className="absolute left-2.5" style={{ top: HEADER_H }}>
         {left.map((p) => (
@@ -222,6 +254,7 @@ function mkEdge(s: string, sh: string, t: string, th: string, type: PinType): Ed
     sourceHandle: sh,
     targetHandle: th,
     type: 'smoothstep',
+    data: { sig: type },
     style: { stroke: PIN_COLOR[type], strokeWidth: 2 },
   };
 }
@@ -315,7 +348,9 @@ function validate(nodes: Node[], edges: Edge[]): Report {
 }
 
 export function CircuitBuilder() {
-  const { profile } = useRobot();
+  const { profile, connection, telemetry } = useRobot();
+  const connected = connection === 'connected';
+  const moving = connected && Math.abs(telemetry?.spd ?? 0) > 0.02;
   const initial = useMemo(() => buildGraph(profile.board), [profile.board]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);
@@ -340,6 +375,7 @@ export function CircuitBuilder() {
 
   const report = useMemo(() => validate(nodes, edges), [nodes, edges]);
   const clean = report.errors.length === 0 && report.warnings.length === 0;
+  const displayEdges = useMemo(() => edges.map((e) => withLive(e, connected, moving)), [edges, connected, moving]);
 
   return (
     <div className="flex h-full">
@@ -371,7 +407,7 @@ export function CircuitBuilder() {
       <div className="relative min-w-0 flex-1">
         <ReactFlow
           nodes={nodes}
-          edges={edges}
+          edges={displayEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -384,6 +420,13 @@ export function CircuitBuilder() {
           <Background gap={18} size={1} color="#1e293b" />
           <Controls />
           <MiniMap pannable zoomable className="!bg-slate-900" />
+          {connected && (
+            <Panel position="top-left">
+              <div className="flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2 py-1 text-[11px] text-emerald-300 backdrop-blur">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> LIVE · mirroring the {moving ? 'driving' : 'idle'} robot
+              </div>
+            </Panel>
+          )}
         </ReactFlow>
       </div>
 
