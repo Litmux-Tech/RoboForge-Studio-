@@ -23,6 +23,8 @@ firmware/**/.pio/
 *.bin
 *.elf
 *.hex
+# ...but DO ship the pre-built runtime the Flash page serves
+!apps/web/public/firmware/*.bin
 
 # os / editor
 .DS_Store

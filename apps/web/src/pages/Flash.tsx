@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
-import { Usb, Cpu, Upload, Zap, Trash2, AlertTriangle } from 'lucide-react';
+import { Usb, Cpu, Upload, Zap, Trash2, AlertTriangle, Rocket } from 'lucide-react';
 import { ESPLoader, Transport } from 'esptool-js';
 import { Card } from '../components/Card';
+
+const RUNTIME_URL = '/firmware/roverlib.bin';
 
 export function Flash() {
   const supported = typeof navigator !== 'undefined' && 'serial' in navigator;
@@ -134,6 +136,34 @@ export function Flash() {
     }
   };
 
+  const flashRuntime = async () => {
+    const loader = loaderRef.current;
+    if (!loader) return;
+    try {
+      setBusy(true);
+      setProgress(0);
+      append('Fetching RoboForge runtime…');
+      const res = await fetch(RUNTIME_URL);
+      if (!res.ok) throw new Error(`runtime not bundled yet (${res.status})`);
+      const data = new Uint8Array(await res.arrayBuffer());
+      append(`Writing roverlib runtime (${(data.length / 1024).toFixed(0)} KB) @ 0x0…`);
+      await loader.writeFlash({
+        fileArray: [{ data, address: 0x0 }],
+        flashSize: 'keep',
+        flashMode: 'keep',
+        flashFreq: 'keep',
+        eraseAll: false,
+        compress: true,
+        reportProgress: (_i, written, total) => setProgress(Math.round((written / total) * 100)),
+      });
+      append('✓ Runtime flashed. Press RESET/EN to boot, then join WiFi “RoboForge-Car”.');
+    } catch (e) {
+      append(`Flash error: ${errMsg(e)}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto p-4">
       <div className="mb-3">
@@ -181,6 +211,27 @@ export function Flash() {
             </Card>
 
             <Card title="FIRMWARE">
+              <div className="mb-3 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3">
+                <div className="mb-1.5 flex items-center gap-2 text-sm font-medium text-cyan-200">
+                  <Rocket size={15} /> RoboForge Runtime
+                </div>
+                <p className="mb-2.5 text-xs text-slate-400">
+                  The pre-built firmware. Flash it once — after that, configure the robot live from the app, no rebuilds.
+                </p>
+                <button
+                  type="button"
+                  onClick={flashRuntime}
+                  disabled={busy || !chip}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 disabled:opacity-50"
+                >
+                  <Zap size={15} /> Flash RoboForge Runtime
+                </button>
+              </div>
+              <div className="mb-3 flex items-center gap-3 text-[11px] uppercase tracking-wide text-slate-600">
+                <span className="h-px flex-1 bg-slate-800" />
+                or a custom .bin
+                <span className="h-px flex-1 bg-slate-800" />
+              </div>
               <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-700 p-3 hover:border-slate-600">
                 <Upload size={18} className="text-slate-400" />
                 <div className="min-w-0 flex-1">
