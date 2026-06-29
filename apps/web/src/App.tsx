@@ -7,6 +7,8 @@ import { LiveControl } from './pages/LiveControl';
 import { Telemetry } from './pages/Telemetry';
 import { Sensors } from './pages/Sensors';
 import { Terminal } from './pages/Terminal';
+import { Configuration } from './pages/Configuration';
+import { Settings } from './pages/Settings';
 import { Placeholder } from './pages/Placeholder';
 
 export default function App() {
@@ -22,8 +24,9 @@ export default function App() {
             <Route path="/telemetry" element={<Telemetry />} />
             <Route path="/sensors" element={<Sensors />} />
             <Route path="/terminal" element={<Terminal />} />
-            <Route path="/configuration" element={<Placeholder title="Configuration" note="Board, pins, drive geometry, transports." />} />
-            <Route path="/settings" element={<Placeholder title="Settings" note="Theme, units, saved profiles." />} />
+            <Route path="/configuration" element={<Configuration />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="*" element={<Placeholder title="Not Found" note="That screen doesn't exist yet." />} />
           </Routes>
         </main>
         <StatusBar />
