@@ -32,7 +32,7 @@ import { SimScene } from '../sim/SimScene';
 
 const QUICK = [
   { label: 'Generate Firmware', icon: Code2, color: 'bg-emerald-500/15 text-emerald-300' },
-  { label: 'Flash to ESP32', icon: Cpu, color: 'bg-cyan-500/15 text-cyan-300' },
+  { label: 'Flash to ESP32', icon: Cpu, color: 'bg-cyan-500/15 text-cyan-300', to: '/flash' },
   { label: 'Control Robot', icon: Gamepad2, color: 'bg-violet-500/15 text-violet-300', to: '/control' },
   { label: 'Calibrate Sensors', icon: Crosshair, color: 'bg-blue-500/15 text-blue-300' },
   { label: 'Voice Control', icon: Mic, color: 'bg-fuchsia-500/15 text-fuchsia-300' },

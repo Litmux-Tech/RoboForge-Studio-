@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Sidebar } from './shell/Sidebar';
 import { TopBar } from './shell/TopBar';
@@ -11,6 +12,9 @@ import { Configuration } from './pages/Configuration';
 import { Settings } from './pages/Settings';
 import { Placeholder } from './pages/Placeholder';
 
+// esptool-js is heavy — keep it out of the main bundle.
+const Flash = lazy(() => import('./pages/Flash').then((m) => ({ default: m.Flash })));
+
 export default function App() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
@@ -18,16 +22,19 @@ export default function App() {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <TopBar />
         <main className="min-h-0 flex-1 overflow-hidden">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/control" element={<LiveControl />} />
-            <Route path="/telemetry" element={<Telemetry />} />
-            <Route path="/sensors" element={<Sensors />} />
-            <Route path="/terminal" element={<Terminal />} />
-            <Route path="/configuration" element={<Configuration />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<Placeholder title="Not Found" note="That screen doesn't exist yet." />} />
-          </Routes>
+          <Suspense fallback={<div className="grid h-full place-items-center text-sm text-slate-500">Loading…</div>}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/control" element={<LiveControl />} />
+              <Route path="/telemetry" element={<Telemetry />} />
+              <Route path="/sensors" element={<Sensors />} />
+              <Route path="/flash" element={<Flash />} />
+              <Route path="/terminal" element={<Terminal />} />
+              <Route path="/configuration" element={<Configuration />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Placeholder title="Not Found" note="That screen doesn't exist yet." />} />
+            </Routes>
+          </Suspense>
         </main>
         <StatusBar />
       </div>
