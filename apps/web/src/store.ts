@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { SimTransport } from '@roboforge/sim';
 import {
   SafetyGuard,
+  WebSocketTransport,
   createEsp32FourWheelCar,
   type ActionName,
   type ConnectionState,
@@ -26,6 +27,8 @@ export interface LogLine {
   msg: string;
 }
 
+export type LinkMode = 'sim' | 'wifi';
+
 const HISTORY = 120; // ~12 s at 10 Hz
 const LOG_MAX = 200;
 
@@ -38,7 +41,11 @@ interface RobotStore {
   telemetry: TelemetryMsg | null;
   history: TelemetrySample[];
   log: LogLine[];
+  mode: LinkMode;
+  wsHost: string;
 
+  setMode: (m: LinkMode) => void;
+  setWsHost: (h: string) => void;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   drive: (thr: number, str: number) => void;
@@ -49,9 +56,9 @@ interface RobotStore {
 }
 
 /**
- * App state. The control loop is core's Transport + SafetyGuard; swapping
- * SimTransport for WebSocketTransport is one line. A bounded log buffer feeds
- * the Terminal page with real protocol traffic.
+ * App state. The control loop is core's Transport + SafetyGuard; `mode` chooses
+ * the SimTransport (in-browser physics) or WebSocketTransport (a real ESP32) —
+ * the UI is identical either way.
  */
 export const useRobot = create<RobotStore>((set, get) => {
   const pushLog = (level: LogLine['level'], msg: string) =>
@@ -66,18 +73,24 @@ export const useRobot = create<RobotStore>((set, get) => {
     telemetry: null,
     history: [],
     log: [],
+    mode: 'sim',
+    wsHost: '192.168.4.1',
+
+    setMode: (mode) => set({ mode }),
+    setWsHost: (wsHost) => set({ wsHost }),
 
     connect: async () => {
-      const { profile, transport: existing } = get();
+      const { profile, transport: existing, mode, wsHost } = get();
       if (existing) await existing.disconnect();
-      pushLog('sys', 'Connecting…');
+      pushLog('sys', mode === 'wifi' ? `Connecting to ws://${wsHost}:81 …` : 'Connecting to simulator…');
 
-      const transport = new SimTransport(profile); // ← swap for WebSocketTransport to drive a real ESP32
+      const transport: Transport =
+        mode === 'wifi' ? new WebSocketTransport(`ws://${wsHost}:81`) : new SimTransport(profile);
       let telCount = 0;
 
       transport.on('state', (connection) => {
         set({ connection });
-        if (connection === 'connected') pushLog('sys', 'Connected (192.168.4.1)');
+        if (connection === 'connected') pushLog('sys', mode === 'wifi' ? `Connected (${wsHost})` : 'Connected (simulator)');
         else if (connection === 'disconnected') pushLog('sys', 'Disconnected');
         else if (connection === 'error') pushLog('err', 'Connection error');
       });
@@ -104,7 +117,13 @@ export const useRobot = create<RobotStore>((set, get) => {
       });
 
       const safety = new SafetyGuard(transport);
-      await transport.connect();
+      try {
+        await transport.connect();
+      } catch (e) {
+        pushLog('err', `connect failed: ${e instanceof Error ? e.message : String(e)}`);
+        set({ transport: null, safety: null });
+        return;
+      }
       safety.start();
       set({ transport, safety });
     },
