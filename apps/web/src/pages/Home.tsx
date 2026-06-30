@@ -97,7 +97,7 @@ export function Home() {
                 <Field label="Connection" value={connected ? 'WiFi' : '—'} dot={connected} />
                 <button
                   onClick={() => (connected ? nav('/control') : void connect())}
-                  className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-3 py-2 text-sm font-medium text-slate-950 shadow-lg shadow-cyan-500/20 hover:opacity-90"
+                  className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500"
                 >
                   ▶ {connected ? 'Open Live Control' : 'Start Simulation'}
                 </button>
@@ -240,7 +240,7 @@ function ActionCard({ icon, title, sub, primary }: { icon: ReactNode; title: str
     <button
       className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
         primary
-          ? 'border-transparent bg-gradient-to-r from-cyan-500/90 to-blue-600/90 text-white shadow-lg shadow-cyan-500/20'
+          ? 'border-transparent bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500'
           : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-800/60'
       }`}
     >

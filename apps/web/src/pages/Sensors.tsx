@@ -31,7 +31,7 @@ export function Sensors() {
         </div>
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-3 py-1.5 text-sm font-medium text-slate-950 shadow-lg shadow-cyan-500/20"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500"
         >
           <Plus size={15} /> Add Sensor
         </button>

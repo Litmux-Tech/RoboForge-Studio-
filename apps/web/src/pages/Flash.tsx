@@ -196,7 +196,7 @@ export function Flash() {
                     Disconnect
                   </button>
                 ) : (
-                  <button type="button" onClick={connect} disabled={busy} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-3 py-1.5 text-sm font-medium text-slate-950 disabled:opacity-60">
+                  <button type="button" onClick={connect} disabled={busy} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-60">
                     <Usb size={15} /> Connect Device
                   </button>
                 )}
@@ -222,7 +222,7 @@ export function Flash() {
                   type="button"
                   onClick={flashRuntime}
                   disabled={busy || !chip}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
                 >
                   <Zap size={15} /> Flash RoboForge Runtime
                 </button>
@@ -256,7 +256,7 @@ export function Flash() {
               </div>
 
               <div className="mt-3 flex gap-2">
-                <button type="button" onClick={flash} disabled={busy || !chip || !file} className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 disabled:opacity-50">
+                <button type="button" onClick={flash} disabled={busy || !chip || !file} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50">
                   <Zap size={15} /> Flash
                 </button>
                 <button type="button" onClick={erase} disabled={busy || !chip} className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-50">
@@ -271,7 +271,7 @@ export function Flash() {
                     <span>{progress}%</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                    <div className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 transition-all" style={{ width: `${progress}%` }} />
+                    <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
               )}

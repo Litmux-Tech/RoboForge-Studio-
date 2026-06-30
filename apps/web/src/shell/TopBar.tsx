@@ -74,7 +74,7 @@ export function TopBar() {
             type="button"
             disabled={connecting}
             onClick={() => void connect()}
-            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-3 py-1.5 text-sm font-medium text-slate-950 hover:opacity-90 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-60"
           >
             <Play size={14} /> {connecting ? 'Connecting…' : 'Connect'}
           </button>

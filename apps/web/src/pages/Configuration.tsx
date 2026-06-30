@@ -128,7 +128,7 @@ export function Configuration() {
       </div>
 
       <div className="mt-3 flex justify-end">
-        <button type="button" className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 shadow-lg shadow-cyan-500/20">
+        <button type="button" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500">
           Save Configuration
         </button>
       </div>
